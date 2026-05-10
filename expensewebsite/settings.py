@@ -99,7 +99,6 @@ DATABASES = {
     }
 }
 
-postgresql://postgres:hLksfPPhVUFJwLJxCVfJAwEsACHSnXSh@viaduct.proxy.rlwy.net:18794/railway
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
