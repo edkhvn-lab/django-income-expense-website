@@ -9,6 +9,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 from userpreferences.models import UserPreference
 from django.utils import timezone
+import datetime
+from datetime import timedelta
+from userincome.models import UserIncome
 
 
 def search_expenses(request):
@@ -135,3 +138,85 @@ def delete_expense(request, id):
     expense.delete()
     messages.success(request, 'Expense removed')
     return redirect('expenses')
+
+
+def expense_category_summary(request):
+    todays_date = datetime.date.today()
+    six_months_ago = todays_date - datetime.timedelta(days=30 * 6)
+
+    expenses = Expense.objects.filter(
+        owner=request.user,
+        date__gte=six_months_ago,
+        date__lte=todays_date
+    )
+
+    finalrep = {}
+
+    def get_category(expense):
+        return expense.category
+
+    category_list = list(set(map(get_category, expenses)))
+
+    def get_expense_category_amount(category):
+        amount = 0
+        filtered_by_category = expenses.filter(category=category)
+
+        for item in filtered_by_category:
+            amount += item.amount
+
+        return amount
+
+    for y in category_list:
+        finalrep[y] = get_expense_category_amount(y)
+
+    return JsonResponse({
+        'expense_category_data': finalrep
+    })
+
+
+def stats_view(request):
+    return render(request, 'expenses/stats.html')
+
+
+
+
+
+def income_category_summary(request):
+    todays_date = datetime.date.today()
+    six_months_ago = todays_date - datetime.timedelta(days=30 * 6)
+
+    incomes = UserIncome.objects.filter(
+        owner=request.user,
+        date__gte=six_months_ago,
+        date__lte=todays_date
+    )
+
+    finalrep = {}
+
+    def get_category(income):
+        return income.source
+
+    category_list = list(set(map(get_category, incomes)))
+
+    def get_income_category_amount(category):
+        amount = 0
+        filtered_by_category = incomes.filter(source=category)
+
+        for item in filtered_by_category:
+            amount += item.amount
+
+        return amount
+
+    for y in category_list:
+        finalrep[y] = get_income_category_amount(y)
+
+    return JsonResponse({
+        'income_category_data': finalrep
+    })
+
+def income_stats(request):
+    return render(request, 'expenses/income_stats.html')
+
+
+
+
